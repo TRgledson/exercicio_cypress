@@ -1,0 +1,17 @@
+{
+  "name": "exercicio_md_34",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "cypress": "cypress"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "cypress": "^12.6.0",
+    "mochawesome": "^8.1.1"
+  }
+}
