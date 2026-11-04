@@ -3,55 +3,61 @@ describe('Testando Agenda de Contatos', () => {
     cy.visit('https://ebac-agenda-contatos-tan.vercel.app/')
   })
 
-  // fiz duas versões devido a repetidos erros e inconsistencia do servidor.
-  // por algum motivo ele pode clona o contato do primeiro
+  // Duas versões devido a repetidos erros e inconsistencia do servidor.
 
   it('Verificar se está caregando', () => {
     cy.get('input').should('have.length', 3)
   })
 
   it('Incluindo um contato', () => {
+    
     cy.get('input[placeholder="Nome"]').type('Vinicius 13')
     cy.get('input[placeholder="E-mail"]').type('vinicius13@gmail.com')
     cy.get('input[placeholder="Telefone"]').type('(94) 99413-1314')
-    cy.get('.adicionar').click()
     cy.wait(3000)
-    cy.get('.sc-eDDNvR.cTVgex').last().find('li').eq(0).should('have.text', 'Vinicius 13')
+    //Por que o server demora mais do que deveria para carregar o novo contato.
+    cy.get('.adicionar').click()
+    cy.contains('li', 'vinicius13@gmail.com').should('be.visible')
     cy.screenshot('add-vinicius')
   })
 
   it('Alterando o contato', () => {
-    cy.get('.edit').last().click()
+    cy.contains('li', 'vinicius13@gmail.com').closest('.contato').find('.edit').click()
     cy.get('input[placeholder="Telefone"]').type('{end}{backspace}3')
     cy.get('.alterar').click()
-    expect(cy.get('.sc-eDDNvR.cTVgex').last().find('li').eq(1).should('have.text', '(94) 99413-1313'))
+    cy.contains('li', 'vinicius13@gmail.com').closest('.contato').should('contain.text', '(94) 99413-1313')
     cy.screenshot('modificando-tel')
   })
 
   it('Removendo um contato', () => {
-    cy.get('.sc-eDDNvR.cTVgex').last().find('li').eq(0).should('have.text', 'Vinicius 13').get('.delete').last().click()
-    expect(cy.get('.sc-beqWaB.eQdhbg.contato').should('have.length', 3))
+    cy.contains('li', 'vinicius13@gmail.com').closest('.contato').find('.delete').click()
+    //Odeio os clones do serve
+    cy.get('body').then($b => { const $d = $b.find(`.contato:has(li:contains('vinicius13@gmail.com')) .delete`); if ($d.length) cy.wrap($d).click() })
+    expect(cy.contains('li', 'vinicius13@gmail.com').should('not.exist'))
   })
 
-  // esse não é cara ou coroa para dar erro mas, ele é grande demais.
-  // pensei em não depender do contato ja criado mas, como o site não repõe, não parecia certo.
+  //Conjunto completo para evitar erros de copias usando um unico teste com tudo junto.
 
   it('Incluindo todo processo em um', () => {
+    const email = `vinicius${Date.now()}@gmail.com`
+
+    // Incluindo um contato
     cy.get('input[placeholder="Nome"]').type('Vinicius 13')
-    cy.get('input[placeholder="E-mail"]').type('vinicius13@gmail.com')
+    cy.get('input[placeholder="E-mail"]').type(email)
     cy.get('input[placeholder="Telefone"]').type('(94) 99413-1314')
     cy.get('.adicionar').click()
     cy.wait(3000)
-    cy.get('.sc-eDDNvR.cTVgex').last().find('li').eq(0).should('have.text', 'Vinicius 13')
-    cy.screenshot('add-vinicius')
-    cy.wait(1000)
-    cy.get('.edit').last().click()
+    cy.contains('li', email).should('be.visible')
+
+    // Alterando o contato
+    cy.contains('li', email).closest('.contato').find('.edit').click()
     cy.get('input[placeholder="Telefone"]').type('{end}{backspace}3')
     cy.get('.alterar').click()
-    expect(cy.get('.sc-eDDNvR.cTVgex').last().find('li').eq(1).should('have.text', '(94) 99413-1313'))
-    cy.screenshot('modificando-tel')
+    cy.contains('li', email).closest('.contato').should('contain.text', '(94) 99413-1313')
+
+    //Removendo o contato adicionado
     cy.wait(1000)
-    cy.get('.sc-eDDNvR.cTVgex').last().find('li').eq(0).should('have.text', 'Vinicius 13').get('.delete').last().click()
-    expect(cy.get('.sc-beqWaB.eQdhbg.contato').should('have.length', 3))
+    cy.contains('li', email).closest('.contato').find('.delete').click()
+    expect(cy.contains('li', email).should('not.exist'))
   })
 })
